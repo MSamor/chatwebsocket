@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style>
+        .btnBig {
+            width: 50px;
+            height: 50px;
+            background-color: bisque;
+        }
+
+        .msgBox {
+            width: 200px;
+            height: 200px;
+            border: 1px solid #333333;
+        }
+    </style>
+    <title>聊天系统</title>
+</head>
+
+<body>
+    <div class="msgBox">
+
+    </div>
+    <form>
+        <input type="text" id="content">
+        <div class="btnBig">发送</div>
+    </form>
+</body>
+<script src="./jQuery.js"></script>
+<script src="./socket.io.js"></script>
+<script>
+    //服务端接口码
+    var to = 1000;
+//显示连接上服务器
+    var socket = io('http://localhost:3000');
+//注册服务端到服务器    
+    socket.emit('join')
+    socket.on('connect', function (data) {
+        console.log('连上了聊天服务器')
+    })
+//发送信息并渲染到页面
+    socket.on('msg', function (data) {
+        console.log(data)
+        var html = '<div>'+ '客服：' + data.msg + '</div>'
+        $('.msgBox').append(html)
+    })
+//发送消息
+    $('.btnBig').click(function (e) {
+        socket.emit('msg', {
+            msg: $('#content').val(),
+        }, to)
+        var html = '<div>'+'我：' + $('#content').val() + '</div>'
+        $('#content').val('');
+        $('.msgBox').append(html)
+    })
+
+</script>
+
+</html>

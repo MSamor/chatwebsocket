@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style>
+        body {
+            background-color: #f7f7f7;
+        }
+
+        .boxTop {
+            padding: 5px 5px;
+            background-color: rgb(0, 0, 0);
+            border-radius: 5px;
+            text-align: center;
+            line-height: 30px;
+            margin-bottom: 3px;
+            color: rgb(255, 255, 255);
+        }
+
+        .chat {
+            margin: 0 auto;
+            width: 500px;
+        }
+
+        .btnBig {
+            width: 50px;
+            height: 50px;
+            background-color: rgb(0, 0, 0);
+            color: white;
+            line-height: 50px;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .msgBox {
+            /* display: flex; */
+            /* flex-direction: column; */
+            background-color: #ffffff;
+            width: 500px;
+            height: 80vh;
+            box-sizing: border-box;
+            padding: 20px 20px;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+            overflow: auto;
+        }
+
+        form {
+            display: flex;
+            margin-top: 5px;
+        }
+
+        input {
+            width: 450px;
+            border: 1px solid rgb(219, 219, 219);
+            outline: 0;
+            border-radius: 5px;
+            padding-left: 10px;
+        }
+
+        .meLeft {
+            font-size: 20px;
+        }
+
+        .imgTou {
+            width: 50px;
+            height: 50px;
+            background-color: rgb(0, 0, 0);
+            border-radius: 50%;
+            color: white;
+            text-align: center;
+            line-height: 50px;
+        }
+
+        .msg {
+            line-height: 40px;
+            height: 40px;
+            background-color: #e0e0e0;
+            margin: 0 5px;
+            border-radius: 10px;
+            padding: 0 10px;
+        }
+
+        .ver {
+            display: flex;
+            align-items: center;
+            height: 50px;
+            margin-top: 5px;
+        }
+
+        .verKe {
+            display: flex;
+            align-items: center;
+            height: 50px;
+            margin-top: 5px;
+            justify-content: flex-end;
+        }
+
+        .imgKe {
+            width: 50px;
+            height: 50px;
+            background-color: rgb(0, 0, 0);
+            border-radius: 50%;
+            color: white;
+            text-align: center;
+            line-height: 50px;
+
+        }
+
+        .reRight {
+            font-size: 20px;
+            text-align: right
+        }
+    </style>
+    <title>聊天系统</title>
+</head>
+
+<body>
+    <div class="chat">
+        <div class="boxTop">联系客服</div>
+        <div class="msgBox">
+            <div class="ver">
+                <div class="imgTou">客服</div>
+                <div class="msg">你好！</div>
+            </div>
+        </div>
+        <form>
+            <input type="text" id="content" maxlength="22" autocomplete="off" placeholder="在此键入信息…………">
+            <input type="text" style="display:none" />
+            <input type="button" class="btnBig" value="发送">
+        </form>
+    </div>
+</body>
+<script src="./jQuery.js"></script>
+<script src="./socket.io.js"></script>
+<script>
+    //服务端接口码
+    var to = 1000;
+    //显示连接上服务器
+    var socket = io('http://120.79.74.12:3000');
+    //注册服务端到服务器    
+    socket.emit('join')
+    socket.on('connect', function (data) {
+        console.log('连上了聊天服务器')
+    })
+    //接收信息并渲染到页面
+    socket.on('msg', function (data) {
+        console.log(data)
+        var html = `<div class="ver">
+                    <div class="imgTou">客服</div>
+                    <div class="msg">${data.msg}</div>
+                </div>`
+        $('.msgBox').append(html)
+
+        var showContent = $(".msgBox");
+        showContent[0].scrollTop = showContent[0].scrollHeight;
+    })
+    //发送消息
+    $('.btnBig').click(function (e) {
+        socket.emit('msg', {
+            msg: $('#content').val(),
+        }, to)
+        var html = `            <div class="verKe">
+                    <div class="msg">${$('#content').val()}</div>
+                    <div class="imgKe">我</div>
+                </div>`
+        $('#content').val('');
+        $('.msgBox').append(html)
+
+
+        var showContent = $(".msgBox");
+        showContent[0].scrollTop = showContent[0].scrollHeight;
+    })
+
+
+    $(document).keydown(function (event) {
+        if (event.keyCode == 13) {
+            $('.btnBig').click();
+        }
+    });
+</script>
+
+</html>

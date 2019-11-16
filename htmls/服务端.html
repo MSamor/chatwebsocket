@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style>
+        .btnBig {
+            width: 50px;
+            height: 50px;
+            background-color: bisque;
+        }
+        .msgBox {
+            width: 200px;
+            height: 200px;
+            border: 1px solid #333333;
+        }
+    </style>
+    <title>服务端</title>
+</head>
+
+<body>
+    <div class="chat">
+    </div>
+    <div class="userId"></div>
+</body>
+<script src="./jQuery.js"></script>
+<script src="./socket.io.js"></script>
+<script>
+    var temps = null;
+    userID = 0;
+    //服务端接口码
+    var me = 1000;
+    //服务端地址
+    var socket = io('http://localhost:3000');
+    //显示连接上服务器
+    socket.on('connect', function (data) {
+        console.log('连上了聊天服务器')
+    })
+    //注册服务端到服务器
+    socket.emit('joins', me)
+
+    //接收信息并渲染到页面
+    socket.on('msg', function (data, client) {
+        console.log($('#'+client).children())
+        var html = '<div>' + data.msg + '</div>'
+        $('#'+client).children().first().append(html)
+    })
+
+    timer = setInterval(() => {
+        socket.emit('getAll')
+        //获取用户接口码多用户就是多个接口码
+        socket.on('getAlls', function (getAll) {
+            getAll = JSON.stringify(getAll)
+            if (temps != getAll) {
+                temps = getAll
+                getAll = JSON.parse(getAll)
+                userID = 0;
+                console.log(getAll)
+                //少了用户
+                for (const user in getAll) {
+                    if (getAll[user] != 1000) {
+                        $('.chatone[id='+user+']').children().eq(0).remove()
+                        var arr = Object.keys(getAll);
+                        var len = arr.length;
+
+                        let flag = true
+                        for (let index = 0; index < len; index++) { //循环已在的
+                            if (getAll[user] == ($('.chatone').eq(index).attr('id'))) {
+                                flag = false
+                            }
+                        }
+
+                        if (flag) {
+                            let chat = `<div class="chatone" id='${user}'>
+                                            <div class="msgBox"></div>
+                                                <form>
+                                                    <input type="text" id="${user}" /></br>
+                                                    <div class="${user}">发送</div>
+                                                </form>
+                                        </div>`
+                            $('.chat').append(chat)
+
+                            $('.'+user).click(function (e) {
+                                console.log($('input[id='+user+']').val())
+                                socket.emit('msg', {
+                                    msg: $('input[id='+user+']').val()
+                                }, user)
+                            })
+                        }
+
+                                                
+                        userID++;
+                        var html = '<div class = "name">' + '用户' + userID + '</div>'
+                        $('.chatone[id='+user+']').prepend(html)
+                    }
+                }
+                //删除多的
+                var total = $('.chatone').length
+                let index = total - 1
+                for (index; index >= 0; index--) {
+                    let flag = true
+                    let tempUser = null
+                    for (const user in getAll) {
+                        if (getAll[user] != 1000) {
+                            if ($('.chatone').eq(index).attr('id') == user) {
+                                flag = false //有
+                            }
+                        }
+                        if (getAll[user] == 1000) {
+                            tempUser = getAll[user]
+                        }
+                    }
+                    if (getAll[tempUser] == 1000) {
+                        flag = false
+                    }
+                    if (flag) {
+                        console.log(123)
+                        $('.chatone').eq(index).remove();
+                    }
+                }
+
+
+                // console.log(getAll)
+                //输出对方接口码，就是网页上服务端显示的对方ip
+            }
+        })
+        // for (let index = 0; index < $('.btnBig').length; index++) {
+
+        // }
+
+    }, 1000)
+</script>
+
+</html>
